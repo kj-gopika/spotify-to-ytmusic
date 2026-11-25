@@ -1,0 +1,15 @@
+# your private data: never commit
+headers.txt
+browser.json
+matches.csv
+YourLibrary.json
+*.zip
+my_spotify_data/
+# tooling
+.env
+.venv/
+node_modules/
+__pycache__/
+.DS_Store
+*.pem
+*.key

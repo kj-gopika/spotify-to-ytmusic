@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spotify to YouTube Music</title>
+<meta name="description" content="A free, open-source script that copies the saved songs in your Spotify data export to a private YouTube Music playlist. It runs on your own computer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ground: #f3f3ef;
+  --step: #e6e6df;
+  --ink: #121212;
+  --ink-soft: #4a4a46;
+  --accent: #1d3bd6;
+  --on-accent: #ffffff;
+  --field: #121212;
+  --on-field: #f3f3ef;
+  --warn: #ffd23f;
+  --code-bg: #1b1b1a;
+  --code-ink: #e9e9e2;
+  --ok: #7fe0a6;
+  --miss: #ff8a7a;
+  --m: clamp(16px, 4vw, 48px);
+  --gap: clamp(96px, 14vw, 200px);
+  --display: "Archivo", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font: 400 18px/1.55 var(--display); font-stretch: 100%;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.wrap { padding: 0 var(--m); max-width: 1440px; margin: 0 auto; }
+
+/* nav */
+.bar { display: flex; align-items: center; gap: 28px; padding: 20px 0; }
+.mark { font-weight: 800; font-stretch: 75%; font-size: 24px; letter-spacing: -0.02em; text-decoration: none; margin-right: auto; }
+.bar nav { display: flex; gap: 24px; }
+.bar nav a { text-decoration: none; font-weight: 500; }
+.bar nav a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.btn {
+  display: inline-block; padding: 14px 22px; border-radius: 0; font-weight: 700;
+  background: var(--accent); color: var(--on-accent); text-decoration: none; border: 0;
+  font: inherit; font-weight: 700; cursor: pointer;
+  transition: transform .15s ease, background-color .15s ease;
+}
+.btn:hover { background: #142aa3; }
+.btn:active { transform: translateY(1px) scale(.98); }
+.btn.alt { background: var(--ink); color: var(--ground); }
+.btn.alt:hover { background: #333; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(32px, 5vw, 80px); align-items: center; padding: clamp(40px, 7vw, 110px) 0 0; }
+h1 {
+  font-size: clamp(52px, 7.6vw, 124px); line-height: .9; letter-spacing: -0.035em;
+  font-weight: 800; font-stretch: 72%; margin: 0;
+}
+.lede { font-size: clamp(19px, 1.6vw, 23px); max-width: 34ch; margin: 36px 0 36px; }
+.actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* terminal fragment */
+.term {
+  background: var(--code-bg); color: var(--code-ink); padding: 22px 24px 26px;
+  font: 400 14px/1.7 ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow-x: auto;
+}
+.term .dim { color: #9a9a92; }
+.term .ok { color: var(--ok); }
+.term .miss { color: var(--miss); }
+.term pre { margin: 0; white-space: pre; }
+
+/* sections */
+section { padding-top: var(--gap); }
+h2 {
+  font-size: clamp(40px, 5.2vw, 80px); line-height: .95; letter-spacing: -0.03em;
+  font-weight: 800; font-stretch: 75%; margin: 0 0 28px; max-width: 16ch;
+}
+h3 { font-size: 24px; line-height: 1.2; letter-spacing: -0.01em; margin: 0 0 8px; font-weight: 700; }
+p { margin: 0 0 16px; max-width: 62ch; }
+code { font: 500 .9em ui-monospace, "SF Mono", Menlo, Consolas, monospace; background: var(--step); padding: 2px 6px; }
+pre code { background: none; padding: 0; }
+pre.cmd {
+  background: var(--code-bg); color: var(--code-ink); padding: 16px 20px; margin: 14px 0 0;
+  font: 400 15px/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace; overflow-x: auto; max-width: 100%;
+}
+
+/* checker */
+.check { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(32px, 5vw, 80px); align-items: start; }
+.drop {
+  display: block; background: var(--step); padding: clamp(28px, 4vw, 48px); cursor: pointer; min-height: 240px;
+  transition: background-color .15s ease, transform .15s ease;
+}
+.drop:hover, .drop.over { background: #d9d9d0; }
+.drop:active { transform: scale(.995); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop strong { display: block; font-size: clamp(26px, 2.6vw, 36px); line-height: 1.1; letter-spacing: -0.02em; font-stretch: 85%; margin-bottom: 10px; }
+.result { margin-top: 24px; }
+.nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0 0 20px; }
+.nums div { background: var(--ink); color: var(--ground); padding: 18px 18px 16px; }
+.nums b { display: block; font-size: clamp(36px, 4vw, 56px); line-height: 1; font-stretch: 75%; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.nums span { font-size: 15px; }
+.preview { list-style: none; padding: 0; margin: 0; font-size: 16px; }
+.preview li { padding: 6px 0; }
+.preview li span { color: var(--ink-soft); }
+.err { color: #a3150b; font-weight: 600; }
+
+/* steps */
+.steps { list-style: none; counter-reset: s; padding: 0; margin: 40px 0 0; display: grid; gap: 56px; }
+.steps > li { display: grid; grid-template-columns: minmax(200px, 1fr) 2fr; gap: clamp(20px, 4vw, 64px); }
+.steps h3 { font-size: clamp(26px, 2.6vw, 36px); font-stretch: 85%; letter-spacing: -0.02em; line-height: 1.05; }
+.steps p { max-width: 70ch; }
+
+/* risks */
+.risks { background: var(--field); color: var(--on-field); margin-top: var(--gap); padding: var(--gap) 0; }
+.risks section { padding-top: 0; }
+.risks h2 { color: var(--warn); max-width: 14ch; }
+.risk-intro { font-size: clamp(20px, 1.8vw, 24px); max-width: 44ch; margin-bottom: 64px; }
+.risk-list { display: grid; grid-template-columns: 1fr 1fr; gap: 56px clamp(32px, 5vw, 96px); list-style: none; padding: 0; margin: 0; }
+.risk-list h3 { color: var(--warn); font-size: clamp(24px, 2.2vw, 30px); font-stretch: 85%; }
+.risk-list p { color: var(--on-field); }
+.risk-list code { background: #2a2a28; color: var(--on-field); }
+.risk-list .big { grid-column: 1 / -1; background: var(--warn); color: var(--ink); padding: clamp(24px, 3vw, 40px); }
+.risk-list .big h3, .risk-list .big p { color: var(--ink); }
+.risk-list .big h3 { font-size: clamp(28px, 3vw, 42px); }
+
+/* faq */
+.faq { display: grid; grid-template-columns: 1fr 2fr; gap: clamp(32px, 5vw, 80px); }
+details { background: var(--step); margin-bottom: 8px; transition: background-color .15s ease; }
+details:hover { background: #dcdcd4; }
+summary { cursor: pointer; padding: 20px 24px; font-weight: 700; font-size: 20px; list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; float: right; font-weight: 400; }
+details[open] summary::after { content: "–"; }
+details > div { padding: 0 24px 20px; }
+
+/* footer */
+footer { padding: var(--gap) 0 40px; }
+.foot-name { font-size: clamp(56px, 13vw, 220px); line-height: .85; font-weight: 800; font-stretch: 62%; letter-spacing: -0.04em; margin: 0 0 32px; }
+.foot-row { display: flex; flex-wrap: wrap; gap: 16px 40px; justify-content: space-between; font-size: 16px; }
+.foot-row p { margin: 0; }
+
+/* motion */
+.rise { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1); }
+.rise.in { opacity: 1; transform: none; }
+.no-js .rise { opacity: 1; transform: none; }
+.term .line { opacity: 0; }
+.term .line.in { opacity: 1; transition: opacity .25s ease; }
+.no-js .term .line { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .rise, .term .line { opacity: 1 !important; transform: none !important; transition: none !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* grid children may shrink below their code width */
+.hero > *, .check > *, .steps > li > *, .faq > *, .risk-list > * { min-width: 0; }
+
+/* phone */
+@media (max-width: 860px) {
+  .hero, .check, .faq { grid-template-columns: 1fr; }
+  .steps > li { grid-template-columns: 1fr; gap: 8px; }
+  .risk-list { grid-template-columns: 1fr; }
+  .bar nav { display: none; }
+  .term { font-size: 12.5px; padding: 18px; }
+  .nums { gap: 8px; }
+  .nums div { padding: 14px 12px; }
+}
+</style>
+</head>
+<body class="no-js">
+<div class="wrap">
+  <header class="bar">
+    <a class="mark" href="#top" aria-label="s2ytm home">s2ytm</a>
+    <nav aria-label="Sections">
+      <a href="#check">Check your file</a>
+      <a href="#steps">Steps</a>
+      <a href="#risks">Risks</a>
+      <a href="#faq">Questions</a>
+    </nav>
+    <a class="btn alt" href="https://github.com/kj-gopika/spotify-to-ytmusic">Source code</a>
+  </header>
+
+  <main id="top">
+    <div class="hero">
+      <div>
+        <h1 class="rise">Spotify songs to YouTube Music</h1>
+        <p class="lede rise">A free script that copies the saved songs in your Spotify data export to a private YouTube Music playlist. It runs on your computer. There is no server, no sign-up and no fee.</p>
+        <div class="actions rise">
+          <a class="btn" href="#steps">Read the steps</a>
+          <a class="btn alt" href="#risks">Read the risks first</a>
+        </div>
+      </div>
+      <div class="term rise" data-ui aria-label="Example output of the script">
+<pre><span class="line dim">$ python s2ytm.py match YourLibrary.json</span>
+<span class="line">905 songs. Searching YouTube Music (no login needed)...</span>
+<span class="line">[1/905] Blinding Lights - The Weeknd  -&gt; <span class="ok">Blinding Lights</span></span>
+<span class="line">[2/905] Tum Hi Ho - Arijit Singh  -&gt; <span class="ok">Tum Hi Ho</span></span>
+<span class="line">[3/905] Weightless - Marconi Union  -&gt; <span class="ok">Weightless</span></span>
+<span class="line">[4/905] Kun Faya Kun - A.R. Rahman  -&gt; <span class="ok">Kun Faya Kun</span></span>
+<span class="line">[5/905] Night Bus - Small Local Band  -&gt; <span class="miss">not found</span></span>
+<span class="line dim">...</span>
+<span class="line">Found 889 of 905. Check matches.csv</span>
+<span class="line dim">$ python s2ytm.py create</span>
+<span class="line">Deleted headers.txt.</span>
+<span class="line">Added 885/885</span>
+<span class="line"><span class="ok">Done. Private playlist:</span> music.youtube.com/playlist?list=…</span>
+<span class="line miss">Now log out of music.youtube.com in that browser.</span></pre>
+      </div>
+    </div>
+
+    <section id="check" class="check" aria-labelledby="check-h">
+      <div>
+        <h2 id="check-h" class="rise">Check your file first</h2>
+        <p class="rise">Drop the <code>YourLibrary.json</code> file from your Spotify export here. The page counts the songs that the script will copy. It leaves out podcasts, episodes and duplicate songs.</p>
+        <p class="rise">The file stays in this browser tab. This page sends nothing to a server. You can turn off your internet and it still works.</p>
+      </div>
+      <div class="rise">
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept=".json,application/json">
+          <strong>Drop YourLibrary.json here</strong>
+          <span>or click to choose the file</span>
+        </label>
+        <div class="result" id="result" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="steps" aria-labelledby="steps-h">
+      <h2 id="steps-h" class="rise">Six steps, about 30 minutes</h2>
+      <p class="rise">You need a computer with Python 3.9 or newer. Plan for 1 to 2 seconds per song for the search. Spotify can take some days to send the export.</p>
+      <ol class="steps">
+        <li class="rise">
+          <h3>Get your Spotify data</h3>
+          <div>
+            <p>Go to <a href="https://www.spotify.com/account/privacy/">spotify.com/account/privacy</a>. Request <strong>Account data</strong>. Spotify sends you a link by email, usually within a few days. Unzip the download and find <code>YourLibrary.json</code>.</p>
+          </div>
+        </li>
+        <li class="rise">
+          <h3>Install the script</h3>
+          <div>
+            <p>Make a new folder and put <code>YourLibrary.json</code> in it. Open a terminal in that folder.</p>
+            <pre class="cmd"><code># Mac or Linux
+python3 -m venv .venv && source .venv/bin/activate
+pip install ytmusicapi
+curl -O https://raw.githubusercontent.com/kj-gopika/spotify-to-ytmusic/main/s2ytm.py
+
+# Windows (PowerShell)
+py -m venv .venv; .venv\Scripts\Activate.ps1
+pip install ytmusicapi
+curl.exe -O https://raw.githubusercontent.com/kj-gopika/spotify-to-ytmusic/main/s2ytm.py</code></pre>
+            <p style="margin-top:16px">Open <code>s2ytm.py</code> and read it before you run it. It is about 170 lines.</p>
+          </div>
+        </li>
+        <li class="rise">
+          <h3>Find your songs on YouTube Music</h3>
+          <div>
+            <p>This step needs no login. It searches each song and keeps a result only when the title and the artist match.</p>
+            <pre class="cmd"><code>python s2ytm.py match YourLibrary.json</code></pre>
+            <p style="margin-top:16px">Open <code>matches.csv</code>. An empty <code>videoId</code> means the script found no match. Delete the rows of songs you do not want. If the search stops, run it again. It continues from where it stopped.</p>
+          </div>
+        </li>
+        <li class="rise">
+          <h3>Copy your login headers</h3>
+          <div>
+            <p>Open <a href="https://music.youtube.com">music.youtube.com</a> in Chrome, Edge or Firefox and log in. Open the developer tools (F12 or Cmd+Option+I) and select <strong>Network</strong>. Type <code>browse</code> in the filter. Click <strong>Library</strong> on the page. Right-click a <code>browse</code> request with the POST method and select <strong>Copy → Copy request headers</strong>.</p>
+            <pre class="cmd"><code># Mac: save the clipboard to headers.txt
+pbpaste &gt; headers.txt
+
+# Windows (PowerShell)
+Get-Clipboard | Set-Content -Encoding utf8 headers.txt</code></pre>
+            <p style="margin-top:16px">Do not paste these headers anywhere else. Read the risks below.</p>
+          </div>
+        </li>
+        <li class="rise">
+          <h3>Make the playlist</h3>
+          <div>
+            <p>The script reads <code>headers.txt</code>, deletes it, makes a <strong>private</strong> playlist and adds the songs 50 at a time.</p>
+            <pre class="cmd"><code>python s2ytm.py create --name "My Spotify songs"</code></pre>
+          </div>
+        </li>
+        <li class="rise">
+          <h3>Log out</h3>
+          <div>
+            <p>Log out of music.youtube.com in the browser where you copied the headers. This stops the copied cookies from working. Then log in again if you want to.</p>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </main>
+</div>
+
+<div class="risks" id="risks">
+  <div class="wrap">
+    <section aria-labelledby="risks-h">
+      <h2 id="risks-h" class="rise">Read this before you start</h2>
+      <p class="risk-intro rise">This tool is free and has no warranty. It uses a method that Google does not support. Use it only if you accept these risks.</p>
+      <ul class="risk-list">
+        <li class="big rise">
+          <h3>Your headers are your Google login</h3>
+          <p>The request headers hold your login cookies. A person who has them can use your Google and YouTube account as you, until you log out. Never paste them into a website, a chat, a GitHub issue or an AI assistant. The script reads them from <code>headers.txt</code> on your computer, deletes the file, and keeps the login in memory only.</p>
+        </li>
+        <li class="rise">
+          <h3>Not an official API</h3>
+          <p>The script uses <a href="https://github.com/sigma67/ytmusicapi">ytmusicapi</a>, an open-source library that talks to YouTube Music like a web browser does. Google does not support this. It can stop working at any time. It can be against the YouTube Terms of Service. Google can slow down, flag or limit your account. We do not know how often this happens.</p>
+        </li>
+        <li class="rise">
+          <h3>Some matches will be wrong</h3>
+          <p>The script matches by title and artist only. Some results will be a cover, a live version, a remix or a different song with the same name. In one test, 16 of 905 songs (1.8%) had no match. The rate of wrong matches is not known. Check <code>matches.csv</code> before you make the playlist.</p>
+        </li>
+        <li class="rise">
+          <h3>Only download the script from this repository</h3>
+          <p>A changed copy of this script can send your cookies to another person. Get it only from the link on this page, and read it before you run it. We do not publish it anywhere else.</p>
+        </li>
+        <li class="rise">
+          <h3>Song names go to YouTube</h3>
+          <p>To search, the script sends the title and the artist of each song to YouTube. Your Spotify export also holds personal data, such as your email address and listening history. Do not upload it or share it.</p>
+        </li>
+        <li class="rise">
+          <h3>Private does not mean secret</h3>
+          <p>The playlist is private, so other people cannot see it. Google can still see it and can use it for your recommendations. You can change the privacy setting in YouTube Music.</p>
+        </li>
+        <li class="rise">
+          <h3>It copies songs only</h3>
+          <p>It copies the saved songs in <code>YourLibrary.json</code>. It does not copy your playlists, albums, artists, podcasts or play counts. It does not delete anything on Spotify.</p>
+        </li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<div class="wrap">
+  <section id="faq" class="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h" class="rise">Questions</h2>
+    <div class="rise">
+      <details>
+        <summary>Why is this not a website where I log in?</summary>
+        <div><p>A website like that has to receive the login of every person who uses it. That is a large risk for you and a large responsibility for the person who runs it. A script on your own computer keeps your login with you.</p></div>
+      </details>
+      <details>
+        <summary>Why not use the official YouTube API?</summary>
+        <div><p>The official YouTube Data API has a daily limit. A search uses 100 units and adding one video uses 50, from 10,000 units a day. That is about 66 songs a day, so 900 songs take about two weeks. You also have to make your own Google Cloud project.</p></div>
+      </details>
+      <details>
+        <summary>Is it free? What do you get from it?</summary>
+        <div><p>It is free and it stays free. There are no ads, no tracking and no paid version. The code is under the MIT licence. This page has no analytics.</p></div>
+      </details>
+      <details>
+        <summary>Will it make the same playlist twice if I run it again?</summary>
+        <div><p>Yes. Each <code>create</code> makes a new playlist. Delete the old one in YouTube Music if you do not need it.</p></div>
+      </details>
+      <details>
+        <summary>It says my headers are missing a value.</summary>
+        <div><p>Copy the headers of a request named <code>browse</code> that uses POST, while you are logged in. The headers must include <code>cookie</code> and <code>x-goog-authuser</code>. Then save them to <code>headers.txt</code> again.</p></div>
+      </details>
+      <details>
+        <summary>Can I use it for my playlists?</summary>
+        <div><p>Not yet. Your playlists are in <code>Playlist1.json</code> in the same export. Pull requests are welcome.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <p class="foot-name" aria-hidden="true">s2ytm</p>
+    <div class="foot-row">
+      <p>Free and open source under the MIT licence. <a href="https://github.com/kj-gopika/spotify-to-ytmusic">Source code on GitHub</a>.</p>
+      <p>Not made by, supported by or connected to Spotify, YouTube or Google.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+document.body.classList.remove("no-js");
+
+// entrances
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const io = new IntersectionObserver((es) => es.forEach((e) => {
+  if (!e.isIntersecting) return;
+  const sibs = [...e.target.parentElement.children].filter((c) => c.classList.contains("rise"));
+  e.target.style.transitionDelay = (Math.max(0, sibs.indexOf(e.target)) * 75) + "ms";
+  e.target.classList.add("in"); io.unobserve(e.target);
+}), { threshold: 0.12 });
+document.querySelectorAll(".rise").forEach((el) => io.observe(el));
+
+// terminal types out once
+const lines = [...document.querySelectorAll(".term .line")];
+lines.forEach((l, i) => setTimeout(() => l.classList.add("in"), reduce ? 0 : 300 + i * 180));
+
+// file checker: runs only in this tab
+const drop = document.getElementById("drop"), input = document.getElementById("file"), out = document.getElementById("result");
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function show(text) {
+  let d;
+  try { d = JSON.parse(text.replace(/^﻿/, "")); } catch { out.innerHTML = '<p class="err">This is not a JSON file. Use YourLibrary.json from your Spotify export.</p>'; return; }
+  const tracks = Array.isArray(d && d.tracks) ? d.tracks : null;
+  if (!tracks) { out.innerHTML = '<p class="err">This file has no song list. Use YourLibrary.json, not another file from the export.</p>'; return; }
+  const seen = new Set(), songs = [];
+  for (const t of tracks) {
+    if (!String(t.uri || "").startsWith("spotify:track:")) continue;
+    const k = (t.artist + "|" + t.track).toLowerCase();
+    if (!seen.has(k)) { seen.add(k); songs.push(t); }
+  }
+  const left = (d.episodes || []).length + (d.shows || []).length;
+  const mins = Math.max(1, Math.round(songs.length / 60)), maxMins = Math.max(2, Math.round(songs.length * 2 / 60));
+  out.innerHTML =
+    '<div class="nums">' +
+      '<div><b>' + songs.length + '</b><span>songs to copy</span></div>' +
+      '<div><b>' + (tracks.length - songs.length) + '</b><span>duplicates or other items</span></div>' +
+      '<div><b>' + left + '</b><span>podcast items left out</span></div>' +
+    '</div>' +
+    '<p>The search takes about ' + mins + ' to ' + maxMins + ' minutes. The first songs:</p>' +
+    '<ul class="preview">' + songs.slice(0, 6).map((s) => '<li>' + esc(s.track) + ' <span>— ' + esc(s.artist) + '</span></li>').join("") + '</ul>';
+}
+function read(f) { if (!f) return; const r = new FileReader(); r.onload = () => show(r.result); r.readAsText(f); }
+input.addEventListener("change", () => read(input.files[0]));
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => read(e.dataTransfer.files[0]));
+</script>
+</body>
+</html>
