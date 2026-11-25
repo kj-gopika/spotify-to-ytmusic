@@ -190,7 +190,7 @@ footer { padding: var(--gap) 0 40px; }
       <a href="#risks">Risks</a>
       <a href="#faq">Questions</a>
     </nav>
-    <a class="btn alt" href="https://github.com/kj-gopika/spotify-to-ytmusic">Source code</a>
+    <a class="btn alt" href="https://github.com/kj-gopika/spotify-to-ytmusic" target="_blank" rel="noopener noreferrer">Source code</a>
   </header>
 
   <main id="top">
@@ -205,17 +205,17 @@ footer { padding: var(--gap) 0 40px; }
       </div>
       <div class="term rise" data-ui aria-label="Example output of the script">
 <pre><span class="line dim">$ python s2ytm.py match YourLibrary.json</span>
-<span class="line">905 songs. Searching YouTube Music (no login needed)...</span>
-<span class="line">[1/905] Blinding Lights - The Weeknd  -&gt; <span class="ok">Blinding Lights</span></span>
-<span class="line">[2/905] Tum Hi Ho - Arijit Singh  -&gt; <span class="ok">Tum Hi Ho</span></span>
-<span class="line">[3/905] Weightless - Marconi Union  -&gt; <span class="ok">Weightless</span></span>
-<span class="line">[4/905] Kun Faya Kun - A.R. Rahman  -&gt; <span class="ok">Kun Faya Kun</span></span>
-<span class="line">[5/905] Night Bus - Small Local Band  -&gt; <span class="miss">not found</span></span>
+<span class="line">412 songs. Searching YouTube Music (no login needed)...</span>
+<span class="line">[1/412] Clair de Lune - Claude Debussy  -&gt; <span class="ok">Clair de Lune</span></span>
+<span class="line">[2/412] Here Comes the Sun - The Beatles  -&gt; <span class="ok">Here Comes the Sun</span></span>
+<span class="line">[3/412] So What - Miles Davis  -&gt; <span class="ok">So What</span></span>
+<span class="line">[4/412] Take Five - The Dave Brubeck Quartet  -&gt; <span class="ok">Take Five</span></span>
+<span class="line">[5/412] Night Bus - Small Local Band  -&gt; <span class="miss">not found</span></span>
 <span class="line dim">...</span>
-<span class="line">Found 889 of 905. Check matches.csv</span>
+<span class="line">Found 404 of 412. Check matches.csv</span>
 <span class="line dim">$ python s2ytm.py create</span>
 <span class="line">Deleted headers.txt.</span>
-<span class="line">Added 885/885</span>
+<span class="line">Added 403/403</span>
 <span class="line"><span class="ok">Done. Private playlist:</span> music.youtube.com/playlist?list=…</span>
 <span class="line miss">Now log out of music.youtube.com in that browser.</span></pre>
       </div>
@@ -246,7 +246,7 @@ footer { padding: var(--gap) 0 40px; }
           <div>
             <p>Use a web browser for this, not the Spotify app.</p>
             <ol class="sub">
-              <li>Go to <a href="https://www.spotify.com/account/privacy/">spotify.com/account/privacy</a> and log in.</li>
+              <li>Go to <a href="https://www.spotify.com/account/privacy/" target="_blank" rel="noopener noreferrer">spotify.com/account/privacy</a> and log in.</li>
               <li>Scroll down to <strong>Download your data</strong>.</li>
               <li>Select <strong>Account data</strong> only. You do not need “Extended streaming history” or “Technical log information”. They take longer to arrive.</li>
               <li>Click <strong>Request data</strong>.</li>
@@ -287,7 +287,7 @@ footer { padding: var(--gap) 0 40px; }
         <li class="rise">
           <h3>Copy your login headers</h3>
           <div>
-            <p>Open <a href="https://music.youtube.com">music.youtube.com</a> in Chrome, Edge or Firefox and log in. Open the developer tools (F12 or Cmd+Option+I) and select <strong>Network</strong>. Type <code>browse</code> in the filter. Click <strong>Library</strong> on the page.</p>
+            <p>Open <a href="https://music.youtube.com" target="_blank" rel="noopener noreferrer">music.youtube.com</a> in Chrome, Edge or Firefox and log in. Open the developer tools (F12 or Cmd+Option+I) and select <strong>Network</strong>. Type <code>browse</code> in the filter. Click <strong>Library</strong> on the page.</p>
             <p>A Copy button replaces your clipboard. So do these in this order:</p>
             <ol class="sub">
               <li>Click Copy on the command for your computer below. Paste it in the terminal. <strong>Do not press Enter yet.</strong></li>
@@ -331,11 +331,11 @@ footer { padding: var(--gap) 0 40px; }
         </li>
         <li class="rise">
           <h3>Not an official API</h3>
-          <p>The script uses <a href="https://github.com/sigma67/ytmusicapi">ytmusicapi</a>, an open-source library that talks to YouTube Music like a web browser does. Google does not support this. It can stop working at any time. It can be against the YouTube Terms of Service. Google can slow down, flag or limit your account. We do not know how often this happens.</p>
+          <p>The script uses <a href="https://github.com/sigma67/ytmusicapi" target="_blank" rel="noopener noreferrer">ytmusicapi</a>, an open-source library that talks to YouTube Music like a web browser does. Google does not support this. It can stop working at any time. It can be against the YouTube Terms of Service. Google can slow down, flag or limit your account. We do not know how often this happens.</p>
         </li>
         <li class="rise">
           <h3>Some matches will be wrong</h3>
-          <p>The script matches by title and artist only. Some results will be a cover, a live version, a remix or a different song with the same name. In one test, 16 of 905 songs (1.8%) had no match. The rate of wrong matches is not known. Check <code>matches.csv</code> before you make the playlist.</p>
+          <p>The script matches by title and artist only. Some results will be a cover, a live version, a remix or a different song with the same name. In our test, about 2 in 100 songs had no match. The rate of wrong matches is not known. Check <code>matches.csv</code> before you make the playlist.</p>
         </li>
         <li class="rise">
           <h3>Only download the script from this repository</h3>
@@ -392,7 +392,7 @@ footer { padding: var(--gap) 0 40px; }
   <footer>
     <p class="foot-name" aria-hidden="true">s2ytm</p>
     <div class="foot-row">
-      <p>Free and open source under the MIT licence. <a href="https://github.com/kj-gopika/spotify-to-ytmusic">Source code on GitHub</a>.</p>
+      <p>Free and open source under the MIT licence. <a href="https://github.com/kj-gopika/spotify-to-ytmusic" target="_blank" rel="noopener noreferrer">Source code on GitHub</a>.</p>
       <p>Not made by, supported by or connected to Spotify, YouTube or Google.</p>
     </div>
   </footer>
